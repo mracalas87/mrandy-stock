@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Big Splash Stock Exchange</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF3FB; --panel:#FFFFFF; --ink:#16223F; --soft:#56627E; --line:#D5DEEE;
+  --brand:#1F3FBF; --brand-ink:#FFFFFF; --cash:#FFC53D; --up:#0B7A4B; --down:#C4262E; --chip:#E3EAF8;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1830; --panel:#18233F; --ink:#EEF2FB; --soft:#A5B1CC; --line:#2C3A5E;
+    --brand:#8EA6FF; --brand-ink:#0F1830; --up:#5FD9A0; --down:#FF8A8F; --chip:#243257;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1830; --panel:#18233F; --ink:#EEF2FB; --soft:#A5B1CC; --line:#2C3A5E;
+  --brand:#8EA6FF; --brand-ink:#0F1830; --up:#5FD9A0; --down:#FF8A8F; --chip:#243257;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.0625rem/1.5 "Atkinson Hyperlegible",Verdana,Arial,sans-serif}
+h1,h2,h3,.num-big{font-family:"Bricolage Grotesque","Trebuchet MS",Arial,sans-serif;line-height:1.1;margin:0}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.wrap{max-width:46rem;margin:0 auto;padding:1rem}
+.num{font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .down{color:var(--down)}
+.ribbon{background:var(--brand);color:var(--brand-ink);border-radius:.75rem;padding:.6rem .9rem;margin-bottom:.9rem;display:flex;flex-direction:column;align-items:flex-start;gap:.5rem}
+.ribbon p{margin:0;font-weight:700;font-size:1.1rem;line-height:1.35}
+.ribbon div{display:flex;flex-wrap:wrap;gap:.4rem}
+.ribbon button{border:2px solid var(--brand-ink);background:none;color:var(--brand-ink);border-radius:2rem;padding:.2rem .8rem;font-weight:700}
+.ribbon button:hover{background:var(--brand-ink);color:var(--brand)}
+.ribbon button:focus-visible{outline-color:var(--cash)}
+.guide ol,.guide ul{padding-left:1.3rem;margin:.4rem 0 1rem}
+.guide li{margin:.45rem 0}
+.tag{display:inline-block;background:var(--chip);border-radius:.3rem;padding:0 .4rem;font-size:.8rem;font-weight:700;margin-right:.3rem}
+.guide .intro{margin:.2rem 0 .2rem;color:var(--soft)}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.25rem 1rem}
+.top h1{font-size:1.35rem;font-weight:800;color:var(--brand);display:flex;align-items:center;gap:.6rem}
+.logo{width:3rem;height:3rem;flex:none}
+.who{color:var(--soft);font-size:.95rem}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:.25rem;margin-top:.75rem;padding:.4rem 0;border-bottom:2px solid var(--line)}
+.tabs button{border:0;background:none;padding:.55rem 1rem;border-radius:.5rem;font-weight:700;color:var(--soft)}
+.tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink)}
+section[hidden],[hidden]{display:none!important}
+section{padding-top:1rem}
+.num-big{font-size:clamp(2.4rem,10vw,3.75rem);font-weight:800;letter-spacing:-.02em}
+.readout{min-height:1.5rem;font-weight:700}
+.chartbox svg{display:block;width:100%;height:auto;touch-action:pan-y;cursor:crosshair}
+.ranges{display:flex;gap:.4rem;justify-content:center;margin:.5rem 0 0}
+.ranges button,.chips button{border:2px solid transparent;background:var(--chip);border-radius:2rem;padding:.3rem .95rem;white-space:nowrap}
+.ranges button[aria-pressed="true"],.chips button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);font-weight:700}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:1.25rem}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:.75rem;padding:.8rem}
+.stat b{display:block;font-family:"Bricolage Grotesque",Arial,sans-serif;font-size:1.4rem}
+.stat span{color:var(--soft);font-size:.9rem}
+.stat.wide{grid-column:1/-1}
+.stat.wide b{font-size:1.9rem}
+.stat.cash{border-left:.4rem solid var(--cash)}
+h2{font-size:1.25rem;margin:1.5rem 0 .6rem}
+.tools{display:flex;gap:.5rem;margin-bottom:.6rem}
+.tools input{flex:1;background:var(--panel);border:2px solid var(--line);border-radius:.5rem;padding:.5rem .7rem;min-width:0}
+.chips{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.5rem}
+.list{list-style:none;margin:0;padding:0;background:var(--panel);border-radius:.75rem;border:1px solid var(--line)}
+.list li+li{border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:.5rem 1fr auto;gap:.75rem;align-items:center;width:100%;text-align:left;background:none;border:0;padding:.7rem .9rem .7rem 0}
+.row:hover{background:var(--chip)}
+.row .bar{align-self:stretch;border-radius:0 4px 4px 0}
+.row .nm{font-weight:700}
+.row .sub{color:var(--soft);font-size:.9rem}
+.row .pr{text-align:right;font-weight:700}
+.row .ch{font-size:.9rem;font-weight:400}
+.own{display:inline-block;background:var(--cash);color:#16223F;border-radius:.3rem;padding:0 .35rem;font-size:.8rem;font-weight:700;margin-left:.3rem}
+.empty{padding:1.5rem;color:var(--soft);text-align:center}
+.actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem}
+.btn{border:2px solid var(--line);background:var(--panel);border-radius:.5rem;padding:.5rem .9rem;font-weight:700}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.big{width:100%;padding:.8rem;font-size:1.15rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.learn{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:.75rem}
+.learn div{background:var(--panel);border:1px solid var(--line);border-radius:.75rem;padding:1rem}
+.learn h3{font-size:1.1rem;margin-bottom:.3rem;color:var(--brand)}
+.learn p{margin:0}
+dialog{border:0;border-radius:1rem;background:var(--panel);color:var(--ink);padding:0;width:min(34rem,calc(100vw - 1.5rem));max-height:calc(100vh - 2rem)}
+dialog::backdrop{background:rgba(10,16,34,.6)}
+.sheet{padding:1.25rem}
+.sheet h2{margin:0;font-size:1.5rem}
+.sheet .head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.sheet .sub{color:var(--soft);margin:.2rem 0 .4rem}
+.sheet .price{font-family:"Bricolage Grotesque",Arial,sans-serif;font-size:2.2rem;font-weight:800}
+.seg{display:flex;background:var(--chip);border-radius:.6rem;padding:.2rem;margin:.8rem 0}
+.seg button{flex:1;border:0;background:none;border-radius:.45rem;padding:.5rem;font-weight:700}
+.seg button[aria-selected="true"]{background:var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.qty{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.qty input{width:5.5rem;text-align:center;border:2px solid var(--line);border-radius:.5rem;padding:.45rem;background:var(--bg);font-weight:700}
+.qty .btn{min-width:2.75rem}
+.pay{font-size:1.2rem;font-weight:700;margin:.9rem 0 0}
+.err{color:var(--down);min-height:1.5rem;margin:.3rem 0}
+.sheet .foot{display:flex;gap:.5rem;justify-content:flex-end}
+label.lab{display:block;font-weight:700;margin:.6rem 0 .3rem}
+textarea,.txt{width:100%;border:2px solid var(--line);border-radius:.5rem;padding:.5rem;background:var(--bg);color:inherit;font:inherit}
+textarea{min-height:6rem;font-size:.8rem;overflow-wrap:anywhere}
+#toast{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.6rem 1rem;border-radius:.6rem;font-weight:700;opacity:0;pointer-events:none;transition:opacity .25s;max-width:calc(100vw - 2rem);z-index:99}
+#toast.show{opacity:1}
+footer{color:var(--soft);font-size:.9rem;margin:2rem 0 1rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="who" style="margin:0 0 .4rem;text-align:right">Created by Mr Andy</p>
+  <div class="ribbon" role="region" aria-label="About this game">
+    <p>We are learning to use maths with money: decimals, percentages and line graphs.</p>
+    <div><button data-g="goals">Learning objectives</button><button data-g="how">How to play</button><button data-g="tips">Tips</button></div>
+  </div>
+  <header class="top"><h1><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="lc"><circle cx="32" cy="32" r="30"/></clipPath></defs><circle cx="32" cy="32" r="30" fill="#1F9BD8"/><g clip-path="url(#lc)"><path d="M4 50C10 42 12 35 11 28C16 34 19 40 20 45C22 35 24 26 23 17C29 27 31 37 32 45C34 37 37 31 41 26C41 34 42 40 44 45C47 41 50 37 54 34C53 41 55 46 60 50L60 64L4 64Z" fill="#EAF8FF"/></g><circle cx="11" cy="19" r="2.6" fill="#EAF8FF"/><circle cx="53" cy="25" r="2.4" fill="#EAF8FF"/><circle cx="33" cy="9" r="2" fill="#EAF8FF"/><g fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="12,42 24,32 32,38 49,16" stroke="#16223F" stroke-width="8"/><polyline points="40,15 50,15 50,25" stroke="#16223F" stroke-width="8"/><polyline points="12,42 24,32 32,38 49,16" stroke="#FFC53D" stroke-width="4"/><polyline points="40,15 50,15 50,25" stroke="#FFC53D" stroke-width="4"/></g></svg><span>Big Splash Stock Exchange</span></h1><div class="who" id="who"></div></header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="home" aria-selected="true">My money</button>
+    <button role="tab" data-tab="market" aria-selected="false">Market</button>
+    <button role="tab" data-tab="learn" aria-selected="false">Words</button>
+  </nav>
+
+  <section id="home">
+    <div class="num-big num" id="total"></div>
+    <div class="readout num" id="heroRead"></div>
+    <div class="chartbox" id="heroChart"></div>
+    <div class="ranges" id="heroRanges"></div>
+    <div class="stats">
+      <div class="stat wide"><span id="plLab">Profit so far</span><b class="num" id="pl"></b><span>Compared with the $10,000 you started with, fees included</span></div>
+      <div class="stat cash"><span>Cash to spend</span><b class="num" id="cash"></b></div>
+      <div class="stat"><span>In shares</span><b class="num" id="inv"></b></div>
+    </div>
+    <h2>My shares</h2>
+    <ul class="list" id="mine"></ul>
+    <div class="actions">
+      <button class="btn" id="backupBtn">Back up</button>
+      <button class="btn" id="restoreBtn">Restore</button>
+      <button class="btn" id="resetBtn">Start again</button>
+    </div>
+  </section>
+
+  <section id="market" hidden>
+    <div class="stat cash" style="margin-bottom:.75rem"><span>Cash to spend</span><b class="num" id="cash2"></b></div>
+    <div class="tools"><input id="search" type="search" placeholder="Search for a company or fund" aria-label="Search for a company or fund"></div>
+    <div class="chips" id="chips"></div>
+    <ul class="list" id="list"></ul>
+  </section>
+
+  <section id="learn" hidden>
+    <div class="learn">
+      <div><h3>Share</h3><p>A tiny piece of a company. Own a share of Apple and you own a very small part of Apple.</p></div>
+      <div><h3>Share price</h3><p>What one share costs right now. It rises when more people want to buy and falls when more want to sell.</p></div>
+      <div><h3>Fund</h3><p>A basket of shares in hundreds of companies. Buy one share of the fund and you own a little of everything inside.</p></div>
+      <div><h3>Profit and loss</h3><p>Sell for more than you paid and you make a profit. Sell for less and you make a loss.</p></div>
+      <div><h3>Risk</h3><p>How much a price jumps around. One company is riskier than a fund of 500 companies.</p></div>
+      <div><h3>Fee</h3><p>The cost of making a trade. Here it is $5 each time, so trading too often eats your money.</p></div>
+    </div>
+  </section>
+
+  <footer>A classroom activity for maths and financial education. Pretend money and pretend price moves. Nothing is bought, sold or won. Each price starts from the real share price on 7 October 2026, then rises and falls in a made-up way so you can practise. Your portfolio is saved on this device only. This is a learning game, not financial advice.</footer>
+</div>
+
+<dialog id="trade" aria-labelledby="tName"><div class="sheet">
+  <div class="head"><div><h2 id="tName"></h2><p class="sub" id="tSub"></p></div><button class="btn" id="tClose">Close</button></div>
+  <p id="tDesc"></p>
+  <div class="price num" id="tPrice"></div>
+  <div class="seg" role="tablist">
+    <button role="tab" data-t="perf" aria-selected="true">Performance</button>
+    <button role="tab" data-t="buy" aria-selected="false">Buy</button>
+    <button role="tab" data-t="sell" aria-selected="false">Sell</button>
+  </div>
+  <div id="pPerf">
+    <div class="readout num" id="tRead"></div>
+    <div class="chartbox" id="tChart"></div>
+    <div class="ranges" id="tRanges"></div>
+    <p id="tOwn"></p>
+  </div>
+  <div id="pTrade" hidden>
+    <label class="lab" for="qty" id="qLab">How many shares?</label>
+    <div class="qty">
+      <button class="btn" id="minus" aria-label="One fewer">−</button>
+      <input id="qty" type="number" inputmode="numeric" min="1" step="1" value="1">
+      <button class="btn" id="plus" aria-label="One more">+</button>
+      <button class="btn" id="maxBtn"></button>
+    </div>
+    <p class="pay num" id="tPay"></p>
+    <p class="sub num" id="tAfter"></p>
+    <p class="err" id="tErr" role="alert"></p>
+    <button class="btn primary big" id="tGo"></button>
+  </div>
+</div></dialog>
+
+<dialog id="nameDlg" aria-labelledby="nTitle"><div class="sheet">
+  <h2 id="nTitle">Welcome to the Big Splash Stock Exchange</h2>
+  <p>You have $10,000 of pretend money. Use it to practise your maths with money, percentages and line graphs.</p>
+  <label class="lab" for="nameIn">First name or nickname</label>
+  <input class="txt" id="nameIn" maxlength="20" autocomplete="off">
+  <p class="err" id="nErr" role="alert"></p>
+  <div class="foot"><button class="btn primary" id="nGo">Next</button></div>
+</div></dialog>
+
+<dialog id="guideDlg" aria-labelledby="gTitle"><div class="sheet guide">
+  <div class="head"><h2 id="gTitle">Before you invest</h2></div>
+  <div class="seg" role="tablist">
+    <button role="tab" data-g="goals" aria-selected="true">Learning objectives</button>
+    <button role="tab" data-g="how" aria-selected="false">How to play</button>
+    <button role="tab" data-g="tips" aria-selected="false">Tips</button>
+  </div>
+  <div id="g-goals">
+    <p class="intro">This is a maths and money lesson. There is no real money, there are no prizes and nobody wins or loses. By the end you should be able to say:</p>
+    <ul>
+      <li><span class="tag">Maths</span> I can read, compare and order amounts of money written as decimals.</li>
+      <li><span class="tag">Maths</span> I can add, subtract and multiply with money to work out a total cost, including a fee.</li>
+      <li><span class="tag">Maths</span> I can read a line graph and describe how a value changes over time.</li>
+      <li><span class="tag">Maths</span> I can explain what a percentage such as +2% or −5% tells me.</li>
+      <li><span class="tag">Maths</span> I can use negative numbers to describe a loss.</li>
+      <li><span class="tag">Money</span> I can explain the difference between spending, saving and investing, and why investing has risk.</li>
+      <li><span class="tag">Computing</span> I can search and filter information to help me make a decision.</li>
+    </ul>
+    <p class="intro">For parents and carers: this is a classroom activity for maths and financial education. Pupils use pretend money and made-up price changes. Nothing is bought, sold or won, and no personal information leaves this device.</p>
+  </div>
+  <div id="g-how" hidden>
+    <ol>
+      <li>You start with $10,000 of pretend money.</li>
+      <li>Open the <b>Market</b> and tap a company or fund to read what it does.</li>
+      <li>Look at <b>Performance</b> to see how its price has moved over an hour, a day, a week or a month.</li>
+      <li>Tap <b>Buy</b>, choose how many shares you want, then press the Buy button. Every trade costs a $5 fee.</li>
+      <li>Go back to <b>My money</b> to watch your total, your graph and your profit or loss.</li>
+      <li>Tap one of your shares and choose <b>Sell</b> when you want to turn it back into cash.</li>
+    </ol>
+    <p class="intro">Stuck on a word? The Words tab explains them.</p>
+  </div>
+  <div id="g-tips" hidden>
+    <ul>
+      <li><b>Spread your money.</b> If everything is in one company and it falls, all your money falls with it.</li>
+      <li><b>Try a fund.</b> One share of a fund gives you a small piece of hundreds of companies.</li>
+      <li><b>Buy what you understand.</b> Read what a company does before you buy it.</li>
+      <li><b>Do not panic.</b> Prices wobble every minute. A small dip is normal.</li>
+      <li><b>Trade less, think more.</b> Every trade costs $5, so lots of quick trades shrink your money.</li>
+      <li><b>Nobody can predict the next minute.</b> Not in this game and not in real life. Be patient and judge your choices over weeks.</li>
+      <li><b>Keep a little cash.</b> Then you can buy something new without having to sell.</li>
+    </ul>
+  </div>
+  <div class="foot"><button class="btn" id="gNext">Next</button><button class="btn primary" id="gClose">Start investing</button></div>
+</div></dialog>
+
+<dialog id="codeDlg" aria-labelledby="cTitle"><div class="sheet">
+  <h2 id="cTitle"></h2><p id="cText"></p>
+  <textarea id="cArea" aria-label="Backup code"></textarea>
+  <p class="err" id="cErr" role="alert"></p>
+  <div class="foot"><button class="btn" id="cClose">Close</button><button class="btn primary" id="cGo"></button></div>
+</div></dialog>
+
+<dialog id="resetDlg" aria-labelledby="rTitle"><div class="sheet">
+  <h2 id="rTitle">Start again?</h2>
+  <p>This deletes your shares on this device and gives you a fresh $10,000.</p>
+  <div class="foot"><button class="btn" id="rNo">Keep my shares</button><button class="btn primary" id="rYes">Start again</button></div>
+</div></dialog>
+
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ---------- DATA: real prices on 7 Oct 2026 are the starting point for the pretend price moves ---------- */
+const SNAPSHOTS=[{d:"2026-10-07",p:{
+NVDA:239.24,AAPL:333.63,GOOG:344.59,MSFT:529.30,AMZN:256.29,TSM:482.30,SPCX:171.92,META:738.88,AVGO:375.81,"2222.SR":6.87,
+TSLA:380.68,"005930.KS":203.45,MU:1046,"BRK-B":505.54,AMD:649.42,LLY:1157,"000660.KS":1326,JPM:331.28,WMT:107.20,ASML:1834,
+V:370.64,XOM:164.48,JNJ:254.78,INTC:112.50,"688825.SS":8.19,MA:566.58,TCEHY:54.50,ABBV:266.69,CSCO:117.94,PLTR:192.07,
+ORCL:144.77,"601939.SS":1.65,AMAT:530.27,LRCX:333.89,COST:935.68,CVX:207.58,CAT:863.44,BAC:54.09,KO:86.17,DELL:574.00,
+"601288.SS":1.04,MRK:141.94,PG:148.41,"1398.HK":0.97,"RO.SW":431.90,PANW:419.91,UNH:376.32,HSBC:97.58,"601988.SS":1.01,ARM:302.56,
+GE:309.39,MS:191.02,HD:286.69,NFLX:68.69,CRWD:278.86,SHEL:97.62,GEV:1029,RY:196.35,BABA:109.26,ANET:215.36,
+TXN:297.23,NVS:140.79,GS:897.18,MUFG:23.20,MRVL:287.01,KLAC:197.46,"2454.TW":155.09,RTX:183.29,WFC:81.51,AZN:158.61,
+SNDK:1660,SAP:210.46,TMO:656.58,"SIE.DE":314.26,"NESN.SW":90.42,"9984.T":39.82,LIN:489.95,"0857.HK":1.23,"OR.PA":420.82,BHP:87.00,
+TM:185.57,APH:88.62,"0941.HK":10.05,AMGN:402.60,C:128.52,"IHC.AE":98.02,"MC.PA":434.33,SHOP:164.44,IBM:221.29,AXP:304.55,
+ADI:420.55,SAN:14.01,"300750.SZ":43.50,QCOM:181.03,TD:118.18,"6857.T":264.70,VZ:45.98,"285A.T":118.50,
+VOO:703.61,VTI:375.84,QQQ:736.53,VEA:71.31,IEMG:81.62,VT:158.81,"EUNL.DE":146.07,VIG:235.57,BND:70.28,GLD:377.91
+}}];
+
+/* [id, name, country, sector, well-known brand?, what it does] */
+const RAW=[
+["NVDA","NVIDIA","USA","Chips",1,"Designs the chips that power AI and video game graphics."],
+["AAPL","Apple","USA","Tech",1,"Makes iPhones, iPads and Macs."],
+["GOOG","Alphabet (Google)","USA","Tech",1,"Runs Google Search, YouTube and Android."],
+["MSFT","Microsoft","USA","Tech",1,"Makes Windows, Office, Xbox and Minecraft."],
+["AMZN","Amazon","USA","Shops & brands",1,"An online shop that delivers almost anything. It also rents computing power to other companies."],
+["TSM","TSMC","Taiwan","Chips",0,"Builds most of the world's most advanced chips for other companies."],
+["SPCX","SpaceX","USA","Cars & space",1,"Builds rockets and runs Starlink satellite internet."],
+["META","Meta","USA","Tech",1,"Owns Instagram, WhatsApp and Facebook."],
+["AVGO","Broadcom","USA","Chips",0,"Makes chips that connect phones, Wi-Fi and data centres."],
+["2222.SR","Saudi Aramco","Saudi Arabia","Energy",0,"The world's biggest oil producer."],
+["TSLA","Tesla","USA","Cars & space",1,"Makes electric cars and big batteries."],
+["005930.KS","Samsung","South Korea","Tech",1,"Makes Galaxy phones, TVs and memory chips."],
+["MU","Micron","USA","Chips",0,"Makes memory chips that store data."],
+["BRK-B","Berkshire Hathaway","USA","Money",0,"Warren Buffett's company. It owns lots of other businesses."],
+["AMD","AMD","USA","Chips",0,"Designs processors for PCs, games consoles and AI."],
+["LLY","Eli Lilly","USA","Health",0,"Makes medicines, including ones for diabetes."],
+["000660.KS","SK Hynix","South Korea","Chips",0,"Makes memory chips used in AI computers."],
+["JPM","JPMorgan Chase","USA","Money",0,"The biggest bank in the United States."],
+["WMT","Walmart","USA","Shops & brands",0,"The world's biggest supermarket chain."],
+["ASML","ASML","Netherlands","Chips",0,"Builds the giant machines that chip factories need."],
+["V","Visa","USA","Money",1,"Runs the network behind card payments."],
+["XOM","Exxon Mobil","USA","Energy",0,"Finds and sells oil and gas."],
+["JNJ","Johnson & Johnson","USA","Health",0,"Makes medicines and medical equipment."],
+["INTC","Intel","USA","Chips",1,"Makes processors for computers."],
+["688825.SS","CXMT","China","Chips",0,"A Chinese maker of memory chips."],
+["MA","Mastercard","USA","Money",1,"Runs a card payment network."],
+["TCEHY","Tencent","China","Tech",0,"Owns the WeChat app and video game studios, including the makers of Brawl Stars."],
+["ABBV","AbbVie","USA","Health",0,"Makes medicines for serious illnesses."],
+["CSCO","Cisco","USA","Tech",0,"Makes the equipment that keeps the internet running."],
+["PLTR","Palantir","USA","Tech",0,"Makes software that helps organisations analyse huge amounts of data."],
+["ORCL","Oracle","USA","Tech",0,"Sells database software and cloud computing."],
+["601939.SS","China Construction Bank","China","Money",0,"One of China's biggest banks."],
+["AMAT","Applied Materials","USA","Chips",0,"Makes machines used in chip factories."],
+["LRCX","Lam Research","USA","Chips",0,"Makes tools that carve tiny patterns into chips."],
+["COST","Costco","USA","Shops & brands",0,"Warehouse shops that sell in bulk to members."],
+["CVX","Chevron","USA","Energy",0,"Finds and sells oil and gas."],
+["CAT","Caterpillar","USA","Industry",0,"Makes diggers, bulldozers and big engines."],
+["BAC","Bank of America","USA","Money",0,"One of the biggest banks in the United States."],
+["KO","Coca-Cola","USA","Shops & brands",1,"Makes Coca-Cola, Fanta and Sprite."],
+["DELL","Dell","USA","Tech",1,"Makes laptops and the big computers used in data centres."],
+["601288.SS","Agricultural Bank of China","China","Money",0,"A huge Chinese bank that began by serving farmers."],
+["MRK","Merck","USA","Health",0,"Makes medicines and vaccines."],
+["PG","Procter & Gamble","USA","Shops & brands",1,"Makes Pampers, Gillette, Oral-B and Ariel."],
+["1398.HK","ICBC","China","Money",0,"The world's biggest bank by the amount of money it looks after."],
+["RO.SW","Roche","Switzerland","Health",0,"Makes medicines and medical tests."],
+["PANW","Palo Alto Networks","USA","Tech",0,"Protects companies from hackers."],
+["UNH","UnitedHealth","USA","Health",0,"Sells health insurance in the United States."],
+["HSBC","HSBC","UK","Money",1,"A British bank that works all over the world."],
+["601988.SS","Bank of China","China","Money",0,"One of China's biggest banks."],
+["ARM","Arm","UK","Chips",0,"Designs the chips inside nearly every smartphone."],
+["GE","GE Aerospace","USA","Industry",0,"Makes jet engines for aeroplanes."],
+["MS","Morgan Stanley","USA","Money",0,"A bank that helps companies and wealthy people invest."],
+["HD","Home Depot","USA","Shops & brands",0,"DIY and home improvement shops."],
+["NFLX","Netflix","USA","Media & phones",1,"Streams films and series around the world."],
+["CRWD","CrowdStrike","USA","Tech",0,"Cybersecurity software that stops attacks on computers."],
+["SHEL","Shell","UK","Energy",1,"Sells oil, gas and petrol at Shell stations."],
+["GEV","GE Vernova","USA","Energy",0,"Builds wind turbines and equipment for power stations."],
+["RY","Royal Bank of Canada","Canada","Money",0,"Canada's biggest bank."],
+["BABA","Alibaba","China","Shops & brands",0,"China's giant online shopping company."],
+["ANET","Arista Networks","USA","Tech",0,"Makes the network equipment inside data centres."],
+["TXN","Texas Instruments","USA","Chips",0,"Makes simple chips used in cars, machines and calculators."],
+["NVS","Novartis","Switzerland","Health",0,"Makes medicines."],
+["GS","Goldman Sachs","USA","Money",0,"A bank that helps big companies raise and invest money."],
+["MUFG","Mitsubishi UFJ","Japan","Money",0,"Japan's biggest bank."],
+["MRVL","Marvell","USA","Chips",0,"Makes chips that move data quickly inside data centres."],
+["KLAC","KLA","USA","Chips",0,"Makes machines that check new chips for faults."],
+["2454.TW","MediaTek","Taiwan","Chips",0,"Designs chips for phones and smart TVs."],
+["RTX","RTX","USA","Industry",0,"Makes aircraft engines and defence equipment."],
+["WFC","Wells Fargo","USA","Money",0,"A large bank in the United States."],
+["AZN","AstraZeneca","UK","Health",0,"A British company that makes medicines and vaccines."],
+["SNDK","Sandisk","USA","Chips",1,"Makes memory cards and storage drives."],
+["SAP","SAP","Germany","Tech",0,"Makes software that big companies use to run their business."],
+["TMO","Thermo Fisher","USA","Health",0,"Makes laboratory equipment for scientists."],
+["SIE.DE","Siemens","Germany","Industry",0,"Makes trains, factory robots and power equipment."],
+["NESN.SW","Nestlé","Switzerland","Shops & brands",1,"Makes KitKat, Nesquik and Nespresso."],
+["9984.T","SoftBank","Japan","Money",0,"Invests in technology companies around the world."],
+["LIN","Linde","UK","Industry",0,"Sells gases such as oxygen and hydrogen to hospitals and factories."],
+["0857.HK","PetroChina","China","Energy",0,"China's biggest oil and gas company."],
+["OR.PA","L'Oréal","France","Shops & brands",1,"Makes shampoo, skincare and make-up."],
+["BHP","BHP","Australia","Industry",0,"Digs up iron ore and copper."],
+["TM","Toyota","Japan","Cars & space",1,"The world's biggest car maker."],
+["APH","Amphenol","USA","Tech",0,"Makes the connectors and cables inside electronics."],
+["0941.HK","China Mobile","China","Media & phones",0,"The world's biggest mobile phone network."],
+["AMGN","Amgen","USA","Health",0,"Makes medicines using biology."],
+["C","Citigroup","USA","Money",0,"A bank that works in many countries."],
+["IHC.AE","International Holding Company","UAE","Money",0,"An Abu Dhabi group that owns many different businesses."],
+["MC.PA","LVMH","France","Shops & brands",1,"Owns luxury brands such as Louis Vuitton, Dior and Sephora."],
+["SHOP","Shopify","Canada","Tech",0,"Helps small businesses build online shops."],
+["IBM","IBM","USA","Tech",1,"One of the oldest computer companies. Now sells software and AI services."],
+["AXP","American Express","USA","Money",0,"Credit cards and travel services."],
+["ADI","Analog Devices","USA","Chips",0,"Makes chips that measure real-world things like sound and temperature."],
+["SAN","Santander","Spain","Money",1,"A Spanish bank with branches in Portugal and the UK."],
+["300750.SZ","CATL","China","Cars & space",0,"The world's biggest maker of electric car batteries."],
+["QCOM","Qualcomm","USA","Chips",0,"Makes the chips inside many Android phones."],
+["TD","Toronto-Dominion Bank","Canada","Money",0,"A big Canadian bank."],
+["6857.T","Advantest","Japan","Chips",0,"Makes machines that test chips."],
+["VZ","Verizon","USA","Media & phones",0,"A mobile phone network in the United States."],
+["285A.T","Kioxia","Japan","Chips",0,"Makes flash memory for phones and computers."],
+["VOO","Vanguard S&P 500","USA","Funds",0,"A fund holding the 500 biggest American companies in one go."],
+["VTI","Vanguard Total US Market","USA","Funds",0,"A fund holding about 3,500 American companies, big and small."],
+["QQQ","Invesco QQQ","USA","Funds",0,"A fund of 100 big companies, mostly technology."],
+["VEA","Vanguard Developed Markets","World","Funds",0,"A fund of thousands of companies in Europe, Japan, Canada and Australia."],
+["IEMG","iShares Emerging Markets","World","Funds",0,"A fund of companies in fast-growing countries such as China, India and Brazil."],
+["VT","Vanguard Total World","World","Funds",0,"A fund holding around 9,000 companies across the whole world."],
+["EUNL.DE","iShares Core MSCI World","World","Funds",0,"A fund of about 1,300 companies in richer countries. Popular with investors in Europe."],
+["VIG","Vanguard Dividend Growers","USA","Funds",0,"A fund of American companies that pay their owners a bit more every year."],
+["BND","Vanguard Total Bond","USA","Funds",0,"A fund of loans to governments and companies. Usually steadier than shares, but grows more slowly."],
+["GLD","SPDR Gold","World","Funds",0,"A fund that follows the price of gold."]
+];
+const COLOURS={"Tech":"#4C6FFF","Chips":"#8B5CF6","Shops & brands":"#F2617A","Money":"#12A5A0","Health":"#D6409F","Energy":"#B7791F","Industry":"#64748B","Cars & space":"#0EA5E9","Media & phones":"#F97316","Funds":"#2F9E44"};
+const VOL={"Chips":1.5,"Tech":1.2,"Cars & space":1.4,"Funds":.5,"Money":.9,"Health":.8,"Shops & brands":.8,"Energy":1,"Industry":.9,"Media & phones":1};
+function seedOf(s){let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return h|0}
+const ITEMS=RAW.map((r,i)=>({id:r[0],name:r[1],country:r[2],sector:r[3],known:!!r[4],desc:r[5],rank:i,fund:r[3]==="Funds",base:SNAPSHOTS[0].p[r[0]],seed:seedOf(r[0]),
+  vol:r[0]==="BND"?.15:VOL[r[3]]||1,drift:r[0]==="BND"?.03:r[0]==="GLD"?.04:.08}));
+const BY={};ITEMS.forEach(x=>BY[x.id]=x);
+const START=10000,FEE=5,KEY="stockschool-v2",TICK=5000;
+const EPOCH=Date.UTC(2026,9,7),MIN=60000,HOUR=3600000,DAY=86400000,YEAR=365*DAY;
+/* Pretend prices: several layers of seeded noise, from one minute up to one month. Everyone sees the same price at the same moment. */
+const SCALES=[[MIN,.0012],[10*MIN,.003],[HOUR,.006],[6*HOUR,.012],[DAY,.02],[7*DAY,.04],[30*DAY,.06]];
+function rnd(s,k,n){let h=Math.imul(s^Math.imul(k+1,0x9E3779B1),0x85EBCA6B);h^=n;h=Math.imul(h^(h>>>15),0x2C1B3C6D);h=Math.imul(h^(h>>>12),0x297A2D39);h^=h>>>15;return (h>>>0)/2147483648-1}
+function priceAt(id,t){const it=BY[id];if(!it)return 0;const rel=t-EPOCH;let x=it.drift*rel/YEAR;
+  for(let k=0;k<SCALES.length;k++){const u=rel/SCALES[k][0],i=Math.floor(u),f=u-i,a=rnd(it.seed,k,i),b=rnd(it.seed,k,i+1);x+=(a+(b-a)*f*f*(3-2*f))*SCALES[k][1]*it.vol}
+  return Math.max(.01,Math.round(it.base*Math.exp(x)*100)/100)}
+let NOW=Date.now();
+const price=id=>priceAt(id,NOW);
+const RANGES={h:{label:"Hour",span:HOUR,step:MIN,txt:"in the last hour"},d:{label:"Day",span:DAY,step:10*MIN,txt:"in the last day"},w:{label:"Week",span:7*DAY,step:HOUR,txt:"in the last week"},m:{label:"Month",span:30*DAY,step:4*HOUR,txt:"in the last month"}};
+
+/* ---------- HELPERS ---------- */
+const $=id=>document.getElementById(id);
+function money(n){return (n<0?"−$":"$")+Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function cls(n){return n>0.004?"up":n<-0.004?"down":""}
+function delta(d,from){const p=from?Math.abs(d/from*100):0;return (d>0.004?"▲ +":d<-0.004?"▼ −":"")+money(Math.abs(d))+" ("+p.toFixed(2)+"%)"}
+function shares(n){return n+(n===1?" share":" shares")}
+function el(tag,attrs,kids){const e=document.createElement(tag);if(attrs)for(const k in attrs){if(k==="class")e.className=attrs[k];else if(k==="text")e.textContent=attrs[k];else e.setAttribute(k,attrs[k])}(kids||[]).forEach(c=>e.appendChild(typeof c==="string"?document.createTextNode(c):c));return e}
+let toastT;function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600)}
+function times(r){const R=RANGES[r],a=[];for(let t=NOW-R.span;t<NOW-R.step/2;t+=R.step)a.push(t);a.push(NOW);return a}
+function lab(t,r){const d=new Date(t),tm=d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});return (r==="h"||r==="d")?tm:d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})+", "+tm}
+
+/* ---------- STATE (kept on this device only) ---------- */
+let S=null,mem=null;
+function fresh(name){return {name:name||"",cash:START,holdings:{},trades:[],started:Date.now()}}
+function valid(o){if(!o||typeof o!=="object"||typeof o.cash!=="number"||!isFinite(o.cash)||!o.holdings||typeof o.holdings!=="object"||!Array.isArray(o.trades)||typeof o.started!=="number")return false;
+  for(const id in o.holdings){const h=o.holdings[id];if(!BY[id]||!h||typeof h.qty!=="number"||typeof h.cost!=="number"||!(h.qty>0))return false}return true}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(valid(o)){o.name=String(o.name||"").slice(0,20);return o}}}catch(e){}return mem}
+function save(){mem=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function invested(){let v=0;for(const id in S.holdings)v+=S.holdings[id].qty*price(id);return v}
+function total(){return S.cash+invested()}
+function portSeries(ts){const tr=S.trades,h={};let cash=START,ti=0;
+  return ts.map((t,i)=>{if(i===ts.length-1)return total();if(t<S.started)return START;
+    while(ti<tr.length&&tr[ti].t<=t){const x=tr[ti++];if(x.s==="buy"){h[x.id]=(h[x.id]||0)+x.q;cash-=x.q*x.p+FEE}else{h[x.id]=(h[x.id]||0)-x.q;cash+=x.q*x.p-FEE}}
+    let v=cash;for(const id in h)if(h[id]>0)v+=h[id]*priceAt(id,t);return v})}
+
+/* ---------- LINE GRAPH ---------- */
+let gradN=0;
+function drawLine(box,read,vals,ts,r){
+  if(box.dataset.scrub)return;
+  box.textContent="";
+  const NS="http://www.w3.org/2000/svg",W=640,H=220,P=8,T=14,B=8,n=vals.length,first=vals[0],last=vals[n-1];
+  let lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals);const pad=(hi-lo)*0.15||Math.max(hi*0.002,.02);lo-=pad;hi+=pad;
+  const x=i=>P+i*(W-2*P)/(n-1),y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+  const col=last>=first?"var(--up)":"var(--down)",gid="lg"+(++gradN);
+  const svg=document.createElementNS(NS,"svg");svg.setAttribute("viewBox","0 0 "+W+" "+H);svg.setAttribute("role","img");
+  svg.setAttribute("aria-label","Line graph: "+money(first)+" at the start, "+money(last)+" now, "+RANGES[r].txt);
+  const mk=(nm,a,par)=>{const e=document.createElementNS(NS,nm);for(const k in a)e.setAttribute(k,a[k]);(par||svg).appendChild(e);return e};
+  const g=mk("linearGradient",{id:gid,x1:0,y1:0,x2:0,y2:1},mk("defs",{}));
+  mk("stop",{offset:"0","stop-opacity":".35"},g).style.stopColor=col;mk("stop",{offset:"1","stop-opacity":"0"},g).style.stopColor=col;
+  const line=vals.map((v,i)=>x(i).toFixed(1)+","+y(v).toFixed(1));
+  mk("path",{d:"M"+line.join(" L")+" L"+x(n-1)+","+H+" L"+x(0)+","+H+" Z",fill:"url(#"+gid+")"});
+  mk("line",{x1:P,x2:W-P,y1:y(first),y2:y(first),stroke:"var(--soft)","stroke-dasharray":"3 6","stroke-width":1.5});
+  mk("polyline",{points:line.join(" "),fill:"none","stroke-width":3,"stroke-linejoin":"round","stroke-linecap":"round"}).style.stroke=col;
+  const guide=mk("line",{y1:0,y2:H,stroke:"var(--soft)","stroke-width":1,visibility:"hidden"});
+  const dot=mk("circle",{r:6,cx:x(n-1),cy:y(last),stroke:"var(--panel)","stroke-width":2});dot.style.fill=col;
+  const rest=()=>{delete box.dataset.scrub;guide.setAttribute("visibility","hidden");dot.setAttribute("cx",x(n-1));dot.setAttribute("cy",y(last));
+    read.textContent="";read.appendChild(el("span",{class:cls(last-first),text:delta(last-first,first)}));read.appendChild(el("span",{class:"who",text:" "+RANGES[r].txt}))};
+  const scrub=e=>{box.dataset.scrub="1";const b=svg.getBoundingClientRect();let i=Math.round(((e.clientX-b.left)/b.width*W-P)/((W-2*P)/(n-1)));i=Math.max(0,Math.min(n-1,i));
+    guide.setAttribute("x1",x(i));guide.setAttribute("x2",x(i));guide.setAttribute("visibility","visible");dot.setAttribute("cx",x(i));dot.setAttribute("cy",y(vals[i]));
+    read.textContent=lab(ts[i],r)+": "+money(vals[i])};
+  svg.addEventListener("pointermove",scrub);svg.addEventListener("pointerdown",scrub);svg.addEventListener("pointerleave",rest);svg.addEventListener("pointercancel",rest);
+  svg.addEventListener("pointerup",e=>{if(e.pointerType!=="mouse")rest()});
+  box.appendChild(svg);rest();
+}
+function rangeBar(box,get,set){
+  const draw=()=>{box.textContent="";Object.keys(RANGES).forEach(k=>{const b=el("button",{"aria-pressed":String(get()===k),text:RANGES[k].label});b.addEventListener("click",()=>{set(k);draw()});box.appendChild(b)})};draw();
+}
+
+/* ---------- MY MONEY ---------- */
+let hRange="h",mineRefs={};
+function drawHero(){const ts=times(hRange);drawLine($("heroChart"),$("heroRead"),portSeries(ts),ts,hRange)}
+function buildMine(){
+  const ul=$("mine");ul.textContent="";mineRefs={};
+  const ids=Object.keys(S.holdings).sort((a,b)=>S.holdings[b].qty*price(b)-S.holdings[a].qty*price(a));
+  if(!ids.length){const b=el("button",{class:"btn primary",text:"Go to the Market"});b.addEventListener("click",()=>showTab("market"));
+    ul.appendChild(el("li",{class:"empty"},[el("p",{text:"You do not own any shares yet."}),b]));return}
+  ids.forEach(id=>{const it=BY[id],h=S.holdings[id];
+    const bar=el("span",{class:"bar"});bar.style.background=COLOURS[it.sector];
+    const val=el("div"),pl=el("div",{class:"ch"});mineRefs[id]={val:val,pl:pl};
+    const btn=el("button",{class:"row"},[bar,el("div",null,[el("div",{class:"nm",text:it.name}),el("div",{class:"sub",text:shares(h.qty)})]),el("div",{class:"pr num"},[val,pl])]);
+    btn.addEventListener("click",()=>openTrade(id));ul.appendChild(el("li",null,[btn]))});
+  tickHome();
+}
+function tickHome(){
+  $("who").textContent=S.name?S.name+"'s portfolio":"";
+  $("total").textContent=money(total());$("cash").textContent=money(S.cash);$("cash2").textContent=money(S.cash);$("inv").textContent=money(invested());
+  const g=Math.round((total()-START)*100)/100;$("plLab").textContent=g<0?"Loss so far":"Profit so far";$("pl").textContent=delta(g,START);$("pl").className="num "+cls(g);
+  if(!$("home").hidden)drawHero();
+  for(const id in mineRefs){const h=S.holdings[id];if(!h)continue;const v=h.qty*price(id),d=v-h.cost;mineRefs[id].val.textContent=money(v);mineRefs[id].pl.textContent=delta(d,h.cost);mineRefs[id].pl.className="ch "+cls(d)}
+}
+
+/* ---------- MARKET ---------- */
+let filter="All",query="",rowRefs={};
+function renderChips(){const c=$("chips");c.textContent="";["All","Brands you know","Funds"].forEach(f=>{const b=el("button",{"aria-pressed":String(f===filter),text:f});b.addEventListener("click",()=>{filter=f;renderChips();buildMarket()});c.appendChild(b)})}
+function buildMarket(){
+  const q=query.trim().toLowerCase(),ul=$("list");ul.textContent="";rowRefs={};
+  const rows=ITEMS.filter(it=>!(filter==="Brands you know"&&!it.known)&&!(filter==="Funds"&&!it.fund)&&(!q||it.name.toLowerCase().includes(q)||it.id.toLowerCase().includes(q)));
+  if(!rows.length){ul.appendChild(el("li",{class:"empty",text:"Nothing matches. Try a different search."}));return}
+  rows.forEach(it=>{
+    const bar=el("span",{class:"bar"});bar.style.background=COLOURS[it.sector];
+    const nm=el("div",{class:"nm",text:it.name});const h=S.holdings[it.id];if(h)nm.appendChild(el("span",{class:"own",text:"You own "+h.qty}));
+    const p=el("div"),ch=el("div",{class:"ch"});rowRefs[it.id]={p:p,ch:ch};
+    const btn=el("button",{class:"row"},[bar,el("div",null,[nm,el("div",{class:"sub",text:it.sector+", "+it.country})]),el("div",{class:"pr num"},[p,ch])]);
+    btn.addEventListener("click",()=>openTrade(it.id));ul.appendChild(el("li",null,[btn]))});
+  tickMarket();
+}
+function tickMarket(){if($("market").hidden)return;for(const id in rowRefs){const p=price(id),y=priceAt(id,NOW-DAY),d=(p-y)/y*100;rowRefs[id].p.textContent=money(p);
+  rowRefs[id].ch.textContent=(d>0?"▲ +":d<0?"▼ −":"")+Math.abs(d).toFixed(1)+"% today";rowRefs[id].ch.className="ch "+(d>0?"up":d<0?"down":"")}}
+
+/* ---------- STOCK SHEET ---------- */
+let cur=null,tTab="perf",sRange="h";
+const owned=()=>cur&&S.holdings[cur]?S.holdings[cur].qty:0;
+const maxQty=()=>tTab==="buy"?Math.max(0,Math.floor((S.cash-FEE)/price(cur))):owned();
+function getQty(){const n=Math.floor(Number($("qty").value));return isFinite(n)&&n>0?n:0}
+function openTrade(id){cur=id;const it=BY[id];$("tName").textContent=it.name;$("tSub").textContent=(it.fund?"Fund":"Company")+", "+it.sector+", "+it.country;$("tDesc").textContent=it.desc;
+  delete $("tChart").dataset.scrub;setTab("perf");if(!$("trade").open)$("trade").showModal()}
+function setTab(t){tTab=t;document.querySelectorAll("#trade .seg button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.t===t)));
+  $("pPerf").hidden=t!=="perf";$("pTrade").hidden=t==="perf";
+  if(t!=="perf"){$("qty").value=1;$("qLab").textContent=t==="buy"?"How many shares do you want to buy?":"How many shares do you want to sell?";$("maxBtn").textContent=t==="buy"?"Most I can":"All of them"}
+  tickSheet()}
+function tickSheet(){
+  if(!cur||!$("trade").open&&tTab!=="perf")return;
+  const p=price(cur),o=owned(),h=S.holdings[cur];
+  $("tPrice").textContent=money(p)+" a share";
+  if(tTab==="perf"){
+    const ts=times(sRange);drawLine($("tChart"),$("tRead"),ts.map(t=>priceAt(cur,t)),ts,sRange);
+    const own=$("tOwn");own.textContent="";
+    if(h){const v=o*p,d=v-h.cost;own.appendChild(document.createTextNode("You own "+shares(o)+", worth "+money(v)+". "+(d>=0?"Profit: ":"Loss: ")));own.appendChild(el("b",{class:"num "+cls(d),text:delta(d,h.cost)}))}
+    else own.textContent="You do not own this yet.";
+    return}
+  const q=getQty(),amt=q*p;let err="";
+  if(tTab==="buy"){$("tPay").textContent="You pay "+money(amt+FEE);$("tAfter").textContent="That is "+shares(q)+" at "+money(p)+" each, plus a "+money(FEE)+" fee. Cash left: "+money(S.cash-amt-FEE);
+    if(!q)err="Type how many shares you want.";else if(amt+FEE>S.cash)err=maxQty()>0?"You only have "+money(S.cash)+". The most you can buy is "+maxQty()+".":"You do not have enough cash for one share.";
+    $("tGo").textContent="Buy "+shares(q)}
+  else{$("tPay").textContent="You get "+money(Math.max(0,amt-FEE));$("tAfter").textContent="That is "+shares(q)+" at "+money(p)+" each, minus a "+money(FEE)+" fee."+(h&&q<=o?" "+(amt-h.cost*q/o>=0?"Profit":"Loss")+" on these shares: "+money(Math.abs(amt-h.cost*q/o))+".":"");
+    if(!o)err="You do not own any of these to sell.";else if(!q)err="Type how many shares you want to sell.";else if(q>o)err="You only own "+o+".";
+    $("tGo").textContent="Sell "+shares(q)}
+  $("tErr").textContent=err;$("tGo").disabled=!!err;
+}
+function doTrade(){
+  NOW=Date.now();const q=getQty(),p=price(cur),name=BY[cur].name,side=tTab;if(!q)return;
+  if(side==="buy"){if(q*p+FEE>S.cash){tickSheet();return}const h=S.holdings[cur]||(S.holdings[cur]={qty:0,cost:0});h.qty+=q;h.cost+=q*p;S.cash-=q*p+FEE}
+  else if(side==="sell"){const h=S.holdings[cur];if(!h||q>h.qty){tickSheet();return}h.cost-=h.cost*(q/h.qty);h.qty-=q;S.cash+=q*p-FEE;if(h.qty<=0)delete S.holdings[cur]}
+  else return;
+  S.cash=Math.round(S.cash*100)/100;S.trades.push({t:NOW,id:cur,s:side,q:q,p:p});save();
+  buildMine();buildMarket();setTab("perf");toast((side==="buy"?"Bought ":"Sold ")+shares(q)+" of "+name);
+}
+document.querySelectorAll("#trade .seg button").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.t)));
+$("minus").addEventListener("click",()=>{$("qty").value=Math.max(1,getQty()-1);tickSheet()});
+$("plus").addEventListener("click",()=>{$("qty").value=getQty()+1;tickSheet()});
+$("maxBtn").addEventListener("click",()=>{$("qty").value=Math.max(1,maxQty());tickSheet()});
+$("qty").addEventListener("input",tickSheet);
+$("tClose").addEventListener("click",()=>$("trade").close());
+$("tGo").addEventListener("click",doTrade);
+rangeBar($("tRanges"),()=>sRange,k=>{sRange=k;delete $("tChart").dataset.scrub;tickSheet()});
+rangeBar($("heroRanges"),()=>hRange,k=>{hRange=k;delete $("heroChart").dataset.scrub;drawHero()});
+
+/* ---------- TABS ---------- */
+function showTab(t){document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",String(x.dataset.tab===t)));["home","market","learn"].forEach(id=>$(id).hidden=id!==t);tick()}
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+$("search").addEventListener("input",e=>{query=e.target.value;buildMarket()});
+
+/* ---------- BACKUP, RESTORE, RESET ---------- */
+let codeMode="backup";
+function openCode(m){codeMode=m;$("cErr").textContent="";
+  if(m==="backup"){$("cTitle").textContent="Back up my portfolio";$("cText").textContent="Copy this code and keep it somewhere safe. If this device forgets your portfolio, you can paste the code back in.";
+    $("cArea").value=btoa(unescape(encodeURIComponent(JSON.stringify(S))));$("cArea").readOnly=true;$("cGo").textContent="Copy the code"}
+  else{$("cTitle").textContent="Restore from a backup";$("cText").textContent="Paste your backup code below. This replaces the portfolio on this device.";$("cArea").value="";$("cArea").readOnly=false;$("cGo").textContent="Restore my portfolio"}
+  $("codeDlg").showModal()}
+$("backupBtn").addEventListener("click",()=>openCode("backup"));
+$("restoreBtn").addEventListener("click",()=>openCode("restore"));
+$("cClose").addEventListener("click",()=>$("codeDlg").close());
+$("cGo").addEventListener("click",()=>{
+  if(codeMode==="backup"){const a=$("cArea"),fail=()=>{$("cErr").textContent="Could not copy automatically. Select the code and copy it yourself."};a.select();
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(a.value).then(()=>toast("Code copied"),fail);
+    else{let ok=false;try{ok=document.execCommand("copy")}catch(e){}if(ok)toast("Code copied");else fail()}return}
+  try{const o=JSON.parse(decodeURIComponent(escape(atob($("cArea").value.trim()))));if(!valid(o))throw 0;o.name=String(o.name||"").slice(0,20);S=o;save();$("codeDlg").close();buildMine();buildMarket();toast("Portfolio restored")}
+  catch(e){$("cErr").textContent="That code did not work. Check you pasted all of it."}});
+$("resetBtn").addEventListener("click",()=>$("resetDlg").showModal());
+$("rNo").addEventListener("click",()=>$("resetDlg").close());
+$("rYes").addEventListener("click",()=>{S=fresh(S.name);save();$("resetDlg").close();buildMine();buildMarket();toast("Fresh start: "+money(START))});
+
+/* ---------- GUIDE ---------- */
+const GTABS=["goals","how","tips"];let gCur="goals";
+function showGuide(t){gCur=t;document.querySelectorAll("#guideDlg .seg button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.g===t)));
+  GTABS.forEach(k=>$("g-"+k).hidden=k!==t);$("gNext").hidden=t==="tips";if(!$("guideDlg").open)$("guideDlg").showModal()}
+document.querySelectorAll(".ribbon button,#guideDlg .seg button").forEach(b=>b.addEventListener("click",()=>{$("gClose").textContent="Back to the game";showGuide(b.dataset.g)}));
+$("gNext").addEventListener("click",()=>showGuide(GTABS[GTABS.indexOf(gCur)+1]));
+$("gClose").addEventListener("click",()=>$("guideDlg").close());
+
+/* ---------- START ---------- */
+function tick(){NOW=Date.now();tickHome();tickMarket();if($("trade").open)tickSheet()}
+function startName(){const v=$("nameIn").value.trim();if(!v){$("nErr").textContent="Type a name to begin.";return}S.name=v.slice(0,20);save();$("nameDlg").close();tick();$("gClose").textContent="Start investing";showGuide("goals")}
+$("nGo").addEventListener("click",startName);
+$("nameIn").addEventListener("keydown",e=>{if(e.key==="Enter")startName()});
+$("nameDlg").addEventListener("cancel",e=>e.preventDefault());
+S=load()||fresh("");save();renderChips();buildMine();buildMarket();
+setInterval(tick,TICK);
+if(!S.name)$("nameDlg").showModal();
+</script>
+</body>
+</html>
